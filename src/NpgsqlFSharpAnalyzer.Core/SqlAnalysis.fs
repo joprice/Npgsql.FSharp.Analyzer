@@ -12,7 +12,7 @@ module SqlAnalysis =
     type ComparisonParameter = {
         parameterName : string
         column : string
-        table : string option 
+        table : string option
     }
 
     let rec trimParams = function
@@ -40,7 +40,7 @@ module SqlAnalysis =
                     Returning = List.map trimParams query.Returning
                     ConflictResolution =
                         query.ConflictResolution
-                        |> List.map (fun (column, expr) -> column, trimParams expr) 
+                        |> List.map (fun (column, expr) -> column, trimParams expr)
             }
 
         | Expr.DeleteQuery query ->
@@ -349,7 +349,7 @@ module SqlAnalysis =
     //      user_id int not null -> inferred non-nullable
     //      user_id::text -> inferred nullable
     //
-    // This function resolves the correct nullability and infers non-nullable columns to be returned as such 
+    // This function resolves the correct nullability and infers non-nullable columns to be returned as such
     let resolveColumnNullability (commandText: string) (schema: DbSchemaLookups) (columns: Column list) =
         match Parser.parse commandText with
         | Result.Ok (Expr.SelectQuery selectQuery) ->
@@ -386,7 +386,7 @@ module SqlAnalysis =
                         | Expr.As(Expr.StringLiteral _, Expr.Ident alias) ->
                             Some (alias, alias, true)
                         | _ ->
-                            None 
+                            None
                     )
 
                 match originalColumnNameAndAlias with
@@ -575,10 +575,10 @@ module SqlAnalysis =
                                 if providedParam.paramFunc = "Sql.parameter" then
                                     // do not do anything when the input is a generic param
                                     ()
-                                else if not requiredParam.DataType.IsArray then 
+                                else if not requiredParam.DataType.IsArray then
                                     match requiredParam.DataType.Name with
                                     | "bit" ->
-                                        if requiredParam.IsNullable then 
+                                        if requiredParam.IsNullable then
                                             if providedParam.paramFunc <> "Sql.bit" &&  providedParam.paramFunc <> "Sql.bitOrNone" && providedParam.paramFunc <> "Sql.dbnull"
                                             then yield typeMismatch [ "Sql.bit"; "Sql.bitOrNone";"Sql.dbnull"]
                                         else
@@ -586,7 +586,7 @@ module SqlAnalysis =
                                             then yield typeMismatch [ "Sql.bit" ]
 
                                     | ("bool" | "boolean") ->
-                                        if requiredParam.IsNullable then 
+                                        if requiredParam.IsNullable then
                                             if providedParam.paramFunc <> "Sql.bool" &&  providedParam.paramFunc <> "Sql.boolOrNone" && providedParam.paramFunc <> "Sql.dbnull"
                                             then yield typeMismatch [ "Sql.bool"; "Sql.boolOrNone"; "Sql.dbnull" ]
                                         else
@@ -610,13 +610,13 @@ module SqlAnalysis =
                                             then yield typeMismatch [ "Sql.int16" ]
 
                                     | ("int64" | "bigint" |"bigserial") ->
-                                        if requiredParam.IsNullable then 
+                                        if requiredParam.IsNullable then
                                             if providedParam.paramFunc <> "Sql.int64" && providedParam.paramFunc <> "Sql.int" &&  providedParam.paramFunc <> "Sql.int64OrNone" && providedParam.paramFunc <> "Sql.dbnull"
                                             then yield typeMismatch [ "Sql.int64"; "Sql.int"; "Sql.int64OrNone"; "Sql.dbnull" ]
                                         else
                                             if providedParam.paramFunc <> "Sql.int64" && providedParam.paramFunc <> "Sql.int"
                                             then yield typeMismatch [ "Sql.int64"; "Sql.int" ]
-                                    
+
                                     | ("numeric" | "decimal" | "money") ->
                                         if requiredParam.IsNullable then
                                             if providedParam.paramFunc <> "Sql.decimal" &&  providedParam.paramFunc <> "Sql.decimalOrNone" && providedParam.paramFunc <> "Sql.dbnull"
@@ -642,7 +642,7 @@ module SqlAnalysis =
                                             then yield typeMismatch [ "Sql.bytea" ]
 
                                     | "uuid" ->
-                                        if requiredParam.IsNullable then 
+                                        if requiredParam.IsNullable then
                                             if providedParam.paramFunc <> "Sql.uuid" &&  providedParam.paramFunc <> "Sql.uuidOrNone" && providedParam.paramFunc <> "Sql.dbnull"
                                             then yield typeMismatch [ "Sql.uuid"; "Sql.uuidOrNone"; "Sql.dbnull" ]
                                         else
@@ -682,7 +682,7 @@ module SqlAnalysis =
                                             then yield typeMismatch [ "Sql.jsonb" ]
 
                                     | ("text"|"json"|"xml") ->
-                                        if requiredParam.IsNullable then 
+                                        if requiredParam.IsNullable then
                                             if providedParam.paramFunc <> "Sql.text" && providedParam.paramFunc <> "Sql.textOrNone" && providedParam.paramFunc <> "Sql.string" && providedParam.paramFunc <> "Sql.textOrNone" && providedParam.paramFunc <> "Sql.dbnull"
                                             then yield typeMismatch [ "Sql.text"; "Sql.string"; "Sql.textOrNone"; "Sql.stringOrNone"; "Sql.dbnull" ]
                                         else
@@ -710,7 +710,7 @@ module SqlAnalysis =
                                             then yield typeMismatch [ "Sql.uuidArray" ]
 
                                     | ("text"|"json"|"xml") ->
-                                        if requiredParam.IsNullable then 
+                                        if requiredParam.IsNullable then
                                             if providedParam.paramFunc <> "Sql.stringArray" &&  providedParam.paramFunc <> "Sql.stringArrayOrNone" && providedParam.paramFunc <> "Sql.dbnull"
                                             then yield typeMismatch [ "Sql.stringArray"; "Sql.stringArrayOrNone"; "Sql.dbnull" ]
                                         else
@@ -727,7 +727,7 @@ module SqlAnalysis =
     let formatColumns (availableColumns: InformationSchema.Column list) =
         availableColumns
         |> List.map (fun column ->
-            if column.DataType.IsArray 
+            if column.DataType.IsArray
             then sprintf "| -- %s of type %s[]" column.Name column.DataType.Name
             else sprintf "| -- %s of type %s" column.Name column.DataType.Name
         )
@@ -841,7 +841,7 @@ module SqlAnalysis =
                         let using (name: string) = attempt.funcName.EndsWith (sprintf ".%s" name)
                         let notUsing = using >> not
 
-                        if not column.DataType.IsArray then 
+                        if not column.DataType.IsArray then
                             match column.DataType.Name with
                             ("bit"|"bool"|"boolean") ->
                                 if column.Nullable && notUsing "boolOrNone"
@@ -916,7 +916,7 @@ module SqlAnalysis =
                                 else if notUsing "textOrNone" && notUsing "text" && notUsing "string" && notUsing "stringOrNone"
                                 then
                                     if column.Nullable
-                                    then yield typeMismatch [ replace "textOrNone"; replace "stringOrText" ]
+                                    then yield typeMismatch [ replace "textOrNone"; replace "stringOrNone" ]
                                     else yield typeMismatch [ replace "text"; replace "string" ]
                                 else ()
 
@@ -1042,7 +1042,7 @@ module SqlAnalysis =
                                             |> sprintf "Missing parameters [%s] for this parameter set"
 
                                         errors.Add(createWarning missingParameters parameterSet.range)
-                                    else 
+                                    else
                                         for error in analyzeParameters transactionParams parameterSet.range parameters do
                                             errors.Add(error)
 
